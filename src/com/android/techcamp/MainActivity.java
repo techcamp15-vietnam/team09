@@ -172,7 +172,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 				roll = Math.toDegrees(orientation[2]);
 				//textView.setText("Pitch: " + String.valueOf(pitch));
 				 d = Math.abs((float) (personHeight * Math.tan(pitch * Math.PI / 180)));
-				textView.setText("D: " + String.valueOf(d) + "\n Angle: " + pitch);
+				textView.setText("D: " + String.valueOf(d) + "\n Angle: " + pitch + "\n Azimut" + azimut );
+				
 			}
 		}
 
