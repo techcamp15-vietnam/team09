@@ -1,4 +1,4 @@
-package com.example.camerapreviewdemo;
+package com.android.techcamp;
 
 import java.io.File;
 import java.io.FileOutputStream;

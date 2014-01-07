@@ -1,4 +1,6 @@
-package com.example.camerapreviewdemo;
+package com.android.techcamp;
+
+import com.example.camerapreviewdemo.R;
 
 import android.R.bool;
 import android.app.Activity;
@@ -21,7 +23,6 @@ import android.widget.Toast;
 import android.widget.ZoomControls;
 
 public class MainActivity extends Activity implements SensorEventListener {
-
 	SensorManager mSensorManager;
 	private Sensor accSensor;
 	private Sensor magnetSensor;
