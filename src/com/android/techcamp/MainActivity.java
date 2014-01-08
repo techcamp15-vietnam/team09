@@ -5,7 +5,11 @@ package com.android.techcamp;
 
 import com.android.techcamp.R;
 
+import android.R.bool;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Sensor;
@@ -13,9 +17,13 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.method.DigitsKeyListener;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,24 +31,30 @@ import android.widget.ZoomControls;
 
 public class MainActivity extends Activity implements SensorEventListener {
 	SensorManager mSensorManager;
-	private Sensor accSensor;	  // sensor ACCELERATION
-	private Sensor magnetSensor;  // sensor MAGNETIC
-	double pitch, pitchHeight;	  // rotation around X axis
-	double azimut;				  // rotation around the Z axis 
-	double roll;				  //  rotation around Y axis
-	float d; 					// Distance between object with camera
-	float tempDistance;			// temporaty variables distance
-	float personHeight = 1.6f;	// the height of camera
-	boolean measuredDistance;
+	private Sensor accSensor;	  						// sensor ACCELERATION
+	private Sensor magnetSensor;  						// sensor MAGNETIC
+	double pitch, pitchHeight;	  						// rotation around X axis
+	float d; 											// Distance between object with camera
+	float tempDistance;									// temporaty variables distance
+	float personHeight;									// the height of camera
+	float inputH, inputB;
 	double pitchDistance;
+	boolean pressedGetDistanceButton;
+	boolean pressedGetHeightButton;
+	boolean maxHeightValue;
+	boolean minHeightValue;
+	boolean invalidGetDistanceButton;
+	boolean invalidGetHeightButton;
+	boolean inputed;
 
-	private Preview mPreview; 	// Frame display in screen 
-	private Camera mCamera;		// CAMERA
+	private Preview mPreview; 							// Frame display in screen 
+	private Camera mCamera;								// CAMERA
  
-	private Button getDistance;	// get distance
-	private Button getHeight;	// get Height a Object 
-	TextView textView;			// 
-	TextView heightResult;		// Show height result 		
+	private Button getDistance;							// get distance
+	private Button getHeight;							// get Height a Object
+	private Button inputHeight;
+	TextView textView;			
+	TextView heightResult;								// Show height result 		
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -55,30 +69,43 @@ public class MainActivity extends Activity implements SensorEventListener {
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		// Use below method to get the default sensor for a given type
 		accSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		magnetSensor = mSensorManager
-				.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-//		mSensorManager.registerListener(this, accSensor,
-//				SensorManager.SENSOR_DELAY_NORMAL);
-//		mSensorManager.registerListener(this, magnetSensor,
-//				SensorManager.SENSOR_DELAY_NORMAL);
-		measuredDistance = false;
+		magnetSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 		initButtons();
+		PromptDialog();
 	}
-
-	// ----------------------------------------------------------//
+/*
+ * @author: 9-A: Le Hoai Nam
+ * initial variable values and set button
+ */
+	private void initValues() {
+		pressedGetDistanceButton = false;
+		pressedGetHeightButton = false;
+		maxHeightValue = false;
+		minHeightValue = false;
+		invalidGetDistanceButton = false;
+		invalidGetHeightButton = false;
+		inputed = false;
+		heightResult.setText("Height result");
+	}
+	
 	private void initButtons() {
 		getDistance = (Button) findViewById(R.id.getDistance);
 		getHeight = (Button) findViewById(R.id.getHeight);
+		inputHeight = (Button) findViewById(R.id.inputHeight);
 		
 		// When Click "getDistance" button
 		getDistance.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				// mPreview.takePicture();
-				tempDistance = d;
-				pitchDistance = pitch;
-				measuredDistance = true;
+				if (!invalidGetDistanceButton) {
+					tempDistance = d;
+					pitchDistance = pitch;
+					if (pressedGetDistanceButton)
+						initValues();
+					else
+						pressedGetDistanceButton = true;
+				}
 			}
 		});
 
@@ -87,11 +114,24 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 			@Override
 			public void onClick(View v) {
-//				float h2, height;
-//				pitchHeight = pitch + 90;
-//				h2 = Math.abs((float) (tempDistance * Math.tan(pitchHeight * Math.PI / 180)));
-//				height = h2 + personHeight;
-//				heightResult.setText("Height: " + height);
+				if (!invalidGetHeightButton) {
+					if (pressedGetHeightButton)
+						initValues();
+					else
+						pressedGetHeightButton = true;
+				}
+			}
+		});
+		
+		// When Click "InputHeight" button
+		inputHeight.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				PromptDialog();
+				personHeight = inputB + inputH;
+	//			Intent myIntent = new Intent(MainActivity.this,InputHeight.class);
+	//			startActivity(myIntent);
 			}
 		});
 	}
@@ -135,10 +175,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 	
 /*
  * @Editor: 9-A: Le Hoai Nam
- * 
+ * write check function distance and height
  */
 	@Override
 	public void onSensorChanged(SensorEvent event) {
+		if (!inputed) return;
 		float[] gravity = new float[3];
 		float[] geoMagnetic = new float[3];
 		float[] R = new float[9];
@@ -158,34 +199,152 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		if (gravity != null && geoMagnetic != null) {
 			boolean success = SensorManager.getRotationMatrix(R, I, gravity, geoMagnetic);
-			if (success)
-				{
+			if (success) {
 					/* Orientation has azimuth, pitch and roll */
 					SensorManager.getOrientation(R, orientation);
-					azimut = Math.toDegrees(orientation[0]);
+//					azimut = Math.toDegrees(orientation[0]);
 					pitch = Math.toDegrees(orientation[1]);
-					roll = Math.toDegrees(orientation[2]); //
+//					roll = Math.toDegrees(orientation[2]);
+					
+					/*caculate distance  from camera to object*/
 					d = Math.abs((float) (personHeight * Math.tan(pitch * Math.PI/ 180)));
-					textView.setText("D: " + String.valueOf(d) + "\n Angle: "
-							+ pitch + "\n Azimut" + azimut);
-					if (measuredDistance) {
+					if (!pressedGetDistanceButton)
+						if (gravity[2] > 0) {
+							textView.setText("D: " + d + "\n Angle: "+ pitch);
+							invalidGetDistanceButton = false;
+						}
+						else {
+							textView.setText("Please aim at the ground");
+							invalidGetDistanceButton = true;
+						}
+					/*caculate object's height*/
+					if (pressedGetDistanceButton){
 						if  (gravity[2] == 0) 
-							heightResult.setText("Height: " + personHeight);
-							else
-								if (gravity[2] < 0) {
+							height = personHeight;
+						else
+							if (gravity[2] < 0) {
+								if (pitch == 0) {
+									maxHeightValue = true;
+									invalidGetHeightButton = true;
+								}
+								else {
+									maxHeightValue = false;
+									invalidGetHeightButton = false;
+								}
 									pitchHeight = pitch - 90;
 									h2 = Math.abs((float) (tempDistance * Math.tan(pitchHeight * Math.PI / 180)));
 									height = h2 + personHeight;
-									heightResult.setText("Height: " + height);
 								}
 								else {
+									if (Math.abs(pitch) <= Math.abs(pitchDistance)) {
+										minHeightValue = true;
+										invalidGetHeightButton = true;
+									}
+									else {
+										minHeightValue = false;
+										invalidGetHeightButton = false;
+									}
 									height = personHeight*(1 - (float)(Math.tan(Math.abs(pitchDistance)* Math.PI / 180)/Math.tan(Math.abs(pitch)* Math.PI / 180)));
-									heightResult.setText("Height: " + height);
-								}	
-							}
-	
+								}
+						if (!pressedGetHeightButton) {
+							if (minHeightValue)
+								heightResult.setText("MIN");
+							else
+								if (maxHeightValue)
+									heightResult.setText("MAX");
+								else
+									heightResult.setText("Height: " + height+ "\n Angle: "+ pitch + "\n gra: "+gravity[2]);
+						}
+					}
 				}
 
 		}
 	}
+	/*
+	 * @author: Nguyen Vinh Phu 9-B
+	 * show dialog input height camre and height buiding
+	 * */
+		private void PromptDialog() {
+			// TODO Auto-generated method stub
+			Context context = this;
+
+			LayoutInflater li = LayoutInflater.from(context);
+			View promptsView = li.inflate(R.layout.input_height, null);
+
+			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+					context);
+
+			// set prompts.xml to alertdialog builder
+			alertDialogBuilder.setView(promptsView);
+			alertDialogBuilder.setTitle("Input Height");
+
+			final EditText userInputHeight = (EditText) promptsView
+					.findViewById(R.id.inputHeight);
+			final EditText userInputBuiding = (EditText) promptsView
+					.findViewById(R.id.inputBuiding);
+
+			userInputHeight.setFilters(new InputFilter[] {
+					// Maximum 2 characters.
+					new InputFilter.LengthFilter(4),
+					// Digits only.
+					DigitsKeyListener.getInstance(false, true), // Not strictly
+																// needed, IMHO.
+			});
+
+			// Digits only & use numeric soft-keyboard.
+			userInputBuiding.setKeyListener(DigitsKeyListener.getInstance(false,
+					true));
+
+			userInputBuiding.setFilters(new InputFilter[] {
+					// Maximum 2 characters.
+					new InputFilter.LengthFilter(4),
+					// Digits only.
+					DigitsKeyListener.getInstance(false, true), // Not strictly
+																// needed, IMHO.
+			});
+
+			
+			// Digits only & use numeric soft-keyboard.
+			userInputHeight.setKeyListener(DigitsKeyListener.getInstance(false,
+					true));
+
+			// set dialog message
+			alertDialogBuilder
+					.setCancelable(false)
+					.setPositiveButton("Đồng ý",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int id) {
+									// get user input and set it to result
+									// edit text
+									// result.setText(userInput.getText());
+									inputH = Float.parseFloat(userInputHeight.getText().toString());
+									inputB = Float.parseFloat(userInputBuiding.getText().toString());
+									personHeight = inputB + inputH;
+//									Toast.makeText(getApplicationContext(),"heightH:" + personHeight,Toast.LENGTH_LONG).show();
+									inputed = true;
+									if(inputH < 0.5)
+									{
+										Toast.makeText(getApplicationContext(),"height Camera must langer 0.5m ",Toast.LENGTH_LONG).show();
+									}
+									 if(inputB > 100)
+									 {
+										 Toast.makeText(getApplicationContext(),"range: 0m ~ 500m",Toast.LENGTH_LONG).show();
+
+									 }
+								}
+							})
+					.setNegativeButton("Huỷ bỏ",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int id) {
+									dialog.cancel();
+								}
+							});
+
+			// create alert dialog
+			AlertDialog alertDialog = alertDialogBuilder.create();
+
+			// show it
+			alertDialog.show();
+		}
+
 }

@@ -42,21 +42,21 @@
             android:layout_height="wrap_content"
             android:layout_above="@+id/button_take_picture"
             android:layout_centerHorizontal="true"
-            android:layout_marginBottom="46dp"            
-            android:textSize="30sp" 
+            android:layout_marginBottom="46dp"
             android:text="HeightResult"
-            />
+            android:textSize="20sp" />
 
         <TextView
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
             android:layout_marginTop="85dp"
             android:layout_toRightOf="@+id/button_take_picture"
-            android:text="TextView"
+            android:text="Distance Result"
             android:textColor="#EE0000"
-            android:textSize="30sp" />
+            android:textSize="20sp" />
 
         <TextView
             android:id="@+id/textView1"
@@ -76,5 +76,13 @@
             />
 
     </RelativeLayout>
+
+    <Button
+        android:id="@+id/inputHeight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="H" />
 
 </RelativeLayout>
