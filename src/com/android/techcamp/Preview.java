@@ -1,3 +1,6 @@
+/*
+ * @Author: LE Hoai Nam 9-A & Tran Doan Tan  9-C
+ * */
 package com.android.techcamp;
 
 import java.io.File;
@@ -21,8 +24,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback{
 	private SurfaceHolder mHolder;
 	Size mPreviewSize;
     List<Size> mSupportedPreviewSizes;
-	private final String TAG = "PreviewCamera";
-	
+	private final String TAG = "PreviewCamera";	
 	public Preview(Context context){
 		super(context);
 		mHolder = getHolder();
@@ -30,8 +32,6 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback{
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 	}
 	
-	
-
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -43,8 +43,6 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback{
             mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
         }
 	}
-
-
 
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
@@ -169,21 +167,16 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback{
 			Log.i(TAG, "onShutter");
 		}
 	};
+	
     public void takePicture(){
     	if(mCamera == null){
     		return;
     	}
     	
-
-//    	Camera.Parameters  para = mCamera.getParameters();
-//    	para.setColorEffect(Camera.Parameters.EFFECT_MONO);
-//    	mCamera.setParameters(para);	
-//    	mCamera.startPreview(); 
-    	
-    	
     	mCamera.takePicture(shutterCallback, rawCallback, pictureCallback);
     }
     
+    // Creat File Name
     private String createFileName(){
     	
     	String state = Environment.getExternalStorageState();
