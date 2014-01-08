@@ -30,7 +30,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 	double roll;				  //  rotation around Y axis
 	float d; 					// Distance between object with camera
 	float tempDistance;			// temporaty variables distance
-	float personHeight = 1.6f;	// the height of camera 
+	float personHeight = 1.6f;	// the height of camera
+	boolean measuredDistance;
+	double pitchDistance;
 
 	private Preview mPreview; 	// Frame display in screen 
 	private Camera mCamera;		// CAMERA
@@ -55,10 +57,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 		accSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		magnetSensor = mSensorManager
 				.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-		mSensorManager.registerListener(this, accSensor,
-				SensorManager.SENSOR_DELAY_NORMAL);
-		mSensorManager.registerListener(this, magnetSensor,
-				SensorManager.SENSOR_DELAY_NORMAL);
+//		mSensorManager.registerListener(this, accSensor,
+//				SensorManager.SENSOR_DELAY_NORMAL);
+//		mSensorManager.registerListener(this, magnetSensor,
+//				SensorManager.SENSOR_DELAY_NORMAL);
+		measuredDistance = false;
 		initButtons();
 	}
 
@@ -74,6 +77,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 			public void onClick(View v) {
 				// mPreview.takePicture();
 				tempDistance = d;
+				pitchDistance = pitch;
+				measuredDistance = true;
 			}
 		});
 
@@ -82,11 +87,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 			@Override
 			public void onClick(View v) {
-				float h2, height;
-				pitchHeight = pitch + 90;
-				h2 = Math.abs((float) (tempDistance * Math.tan(pitchHeight * Math.PI / 180)));
-				height = h2 + personHeight;
-				heightResult.setText("Height: " + height);
+//				float h2, height;
+//				pitchHeight = pitch + 90;
+//				h2 = Math.abs((float) (tempDistance * Math.tan(pitchHeight * Math.PI / 180)));
+//				height = h2 + personHeight;
+//				heightResult.setText("Height: " + height);
 			}
 		});
 	}
@@ -127,6 +132,11 @@ public class MainActivity extends Activity implements SensorEventListener {
  * calculation by the formula : h = d * tan(pitch)
  * 
  * */
+	
+/*
+ * @Editor: 9-A: Le Hoai Nam
+ * 
+ */
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		float[] gravity = new float[3];
@@ -135,6 +145,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		float[] I = new float[9];
 		float[] orientation = new float[3];
 		boolean ready = false;
+		float h2, height;
 
 		geoMagnetic[0] = 0;
 		geoMagnetic[1] = 1;
@@ -146,19 +157,35 @@ public class MainActivity extends Activity implements SensorEventListener {
 			geoMagnetic = event.values.clone();
 
 		if (gravity != null && geoMagnetic != null) {
-			boolean success = SensorManager.getRotationMatrix(R, null, gravity,geoMagnetic);
-			// if (success)
-			{
-				/* Orientation has azimuth, pitch and roll */
-				SensorManager.getOrientation(R, orientation);
-				azimut = Math.toDegrees(orientation[0]);
-				pitch = Math.toDegrees(orientation[1]);
-				roll = Math.toDegrees(orientation[2]); //
-				d = Math.abs((float) (personHeight * Math.tan(pitch * Math.PI
-						/ 180)));
-				textView.setText("D: " + String.valueOf(d) + "\n Angle: "
-						+ pitch + "\n Azimut" + azimut);
-			}
+			boolean success = SensorManager.getRotationMatrix(R, I, gravity, geoMagnetic);
+			if (success)
+				{
+					/* Orientation has azimuth, pitch and roll */
+					SensorManager.getOrientation(R, orientation);
+					azimut = Math.toDegrees(orientation[0]);
+					pitch = Math.toDegrees(orientation[1]);
+					roll = Math.toDegrees(orientation[2]); //
+					d = Math.abs((float) (personHeight * Math.tan(pitch * Math.PI/ 180)));
+					textView.setText("D: " + String.valueOf(d) + "\n Angle: "
+							+ pitch + "\n Azimut" + azimut);
+					if (measuredDistance) {
+						if  (gravity[2] == 0) 
+							heightResult.setText("Height: " + personHeight);
+							else
+								if (gravity[2] < 0) {
+									pitchHeight = pitch - 90;
+									h2 = Math.abs((float) (tempDistance * Math.tan(pitchHeight * Math.PI / 180)));
+									height = h2 + personHeight;
+									heightResult.setText("Height: " + height);
+								}
+								else {
+									height = personHeight*(1 - (float)(Math.tan(Math.abs(pitchDistance)* Math.PI / 180)/Math.tan(Math.abs(pitch)* Math.PI / 180)));
+									heightResult.setText("Height: " + height);
+								}	
+							}
+	
+				}
+
 		}
 	}
 }
