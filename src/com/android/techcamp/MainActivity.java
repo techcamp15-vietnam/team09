@@ -3,6 +3,8 @@
  * */
 package com.android.techcamp;
 
+import java.text.DecimalFormat;
+
 import com.android.techcamp.R;
 
 import android.R.bool;
@@ -56,7 +58,9 @@ public class MainActivity extends Activity implements SensorEventListener {
 	private Button getHeight;							// get Height a Object
 	private Button inputHeight;
 	TextView textView;			
-	TextView heightResult;								// Show height result 		
+	TextView heightResult;								// Show height result
+	TextView hPerson;
+	TextView hBuilding;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +77,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 		
 		heightResult = (TextView) findViewById(R.id.height);
 		textView = (TextView) findViewById(R.id.textView);
+		hPerson = (TextView)findViewById(R.id.person);
+		hBuilding = (TextView)findViewById(R.id.buiding);
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		// Use below method to get the default sensor for a given type
 		accSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -220,11 +226,15 @@ public class MainActivity extends Activity implements SensorEventListener {
 					d = Math.abs((float) (personHeight * Math.tan(pitch * Math.PI/ 180)));
 					if (!pressedGetDistanceButton) {
 						if (gravity[2] > 0) {
-							textView.setText("D: " + d + "\n Angle: "+ pitch);
+							DecimalFormat df = new DecimalFormat("0.00");
+							String str= df.format(d);
+							double result= Double.valueOf(str);
+
+							textView.setText(""+result);
 							invalidGetDistanceButton = false;
 						}
 						else {
-							textView.setText("Please aim at the ground");
+							textView.setText("MAX");
 							invalidGetDistanceButton = true;
 						}
 					}
@@ -262,10 +272,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 							if (minHeightValue)
 								heightResult.setText("MIN");
 							else
-								if (maxHeightValue)
+								if (maxHeightValue)	
 									heightResult.setText("MAX");
-								else
-									heightResult.setText("Height: " + height+ "\n Angle: "+ pitch);
+								else {
+									DecimalFormat df = new DecimalFormat("0.00");
+									String str= df.format(height);
+									double result= Double.valueOf(str);
+									heightResult.setText(""+result);
+								}
 						}
 					}
 				}
@@ -318,14 +332,16 @@ public class MainActivity extends Activity implements SensorEventListener {
 				// get user input and set it to result
 				// edit text
 				// result.setText(userInput.getText());
-				if (userInputHeight.getText().toString().matches(""))
-					inputH = 0;
+				 if (userInputHeight.getText().toString().matches("")) {
+					inputed = false;
+					Toast.makeText(getApplicationContext(),"You must input your height ",Toast.LENGTH_LONG).show();
+					PromptDialog();
+					return;
+				 }
 				else inputH = Float.parseFloat(userInputHeight.getText().toString());
 				if (userInputBuiding.getText().toString().matches(""))
 					inputB = 0;
 				else inputB = Float.parseFloat(userInputBuiding.getText().toString());
-				personHeight = inputB + inputH;
-				inputed = true;
 				if(inputH < 0.5) {
 					inputed = false;
 					Toast.makeText(getApplicationContext(),"height Camera must langer 0.5m ",Toast.LENGTH_LONG).show();
@@ -334,11 +350,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 				}
 				if(inputB > 500) {
 					inputed = false;
-					Toast.makeText(getApplicationContext(),"range: 0m ~ 500m",Toast.LENGTH_LONG).show();
+					Toast.makeText(getApplicationContext(),"range's building: 0m ~ 500m",Toast.LENGTH_LONG).show();
 					PromptDialog();
 					return;
 				}
-				
+				personHeight = inputB + inputH;
+				inputed = true;
+				hPerson.setText("h: "+ inputH);
+				hBuilding.setText("H: "+ inputB);
 				initValues();
 			}
 			}).setNegativeButton("Cancel",new DialogInterface.OnClickListener() {
