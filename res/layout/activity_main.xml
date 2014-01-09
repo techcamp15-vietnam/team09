@@ -8,81 +8,105 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
     </FrameLayout>
-
-    <RelativeLayout
-        android:id="@+id/button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:gravity="center_horizontal" >
-
-        <Button
-            android:id="@+id/getHeight"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:layout_marginBottom="50dp"
-            android:layout_marginRight="25dp"
-            android:text="Get Height" />
-
-        <Button
-            android:id="@+id/getDistance"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_marginBottom="14dp"
-            android:text="Get Distance" />
-
-        <TextView
-            android:id="@+id/height"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/button_take_picture"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="46dp"
-            android:text="HeightResult"
-            android:textSize="20sp" />
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+    
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical" >
+                <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="85dp"
-            android:layout_toRightOf="@+id/button_take_picture"
-            android:text="Distance Result"
-            android:textColor="#EE0000"
-            android:textSize="20sp" />
+            android:layout_weight="1"
+            android:orientation="horizontal" >
 
-        <TextView
-            android:id="@+id/textView1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="false"
-            android:layout_alignParentRight="false"
-            android:layout_alignParentTop="false"
-            android:layout_alignWithParentIfMissing="false"
-            android:layout_centerHorizontal="true"
-            android:layout_centerInParent="true"
-            android:layout_centerVertical="true"            
-            android:textColor="#FF0000"
-            android:textSize="20dp" 
-            android:text="+"
-            />
+            <Button
+                android:id="@+id/inputHeight"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_weight="0.2"
+                android:text="Input Height" />
 
-    </RelativeLayout>
+            <Button
+                android:id="@+id/menu"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="0.2"
+                android:text="Menu" />
+        </LinearLayout>
+	        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="3"
+            android:orientation="vertical" >
 
-    <Button
-        android:id="@+id/inputHeight"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:text="H" />
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:text="Distance:"
+                android:textSize="25dp" />
 
-</RelativeLayout>
+            <TextView
+                android:id="@+id/height"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Height Result:"
+                android:textSize="25dp" />
+        </LinearLayout>
+		<LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2" >
+
+			<ImageView
+			    android:id="@+id/pictureCapture"
+			    android:layout_width="fill_parent"
+			    android:layout_height="fill_parent"
+			    android:src="@drawable/target" />
+
+        </LinearLayout>
+	             <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="4"
+            android:orientation="horizontal" >
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" >
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_launcher" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="bottom"
+                android:orientation="vertical" >
+
+                <Button
+                    android:id="@+id/getDistance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="GetDistace" />
+
+                <Button
+                    android:id="@+id/getHeight"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:text="GetHeight" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>   

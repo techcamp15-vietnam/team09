@@ -10,6 +10,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Sensor;
@@ -63,13 +65,19 @@ public class MainActivity extends Activity implements SensorEventListener {
 		FrameLayout previewLayout = (FrameLayout) findViewById(R.id.preview);
 		mPreview = new Preview(MainActivity.this); 
 		previewLayout.addView(mPreview);
-
+		
+		Resources res = getResources();
+		Drawable background = res.getDrawable(R.drawable.background1);		
+		background.setAlpha(80);
+		mPreview.setBackgroundDrawable(background);
+		
 		heightResult = (TextView) findViewById(R.id.height);
 		textView = (TextView) findViewById(R.id.textView);
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		// Use below method to get the default sensor for a given type
 		accSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		magnetSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		inputed = false;
 		initButtons();
 		PromptDialog();
 	}
@@ -84,7 +92,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 		minHeightValue = false;
 		invalidGetDistanceButton = false;
 		invalidGetHeightButton = false;
-		inputed = false;
 		heightResult.setText("Height result");
 	}
 	
@@ -92,6 +99,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		getDistance = (Button) findViewById(R.id.getDistance);
 		getHeight = (Button) findViewById(R.id.getHeight);
 		inputHeight = (Button) findViewById(R.id.inputHeight);
+		getHeight.setVisibility(View.INVISIBLE);
 		
 		// When Click "getDistance" button
 		getDistance.setOnClickListener(new OnClickListener() {
@@ -101,8 +109,10 @@ public class MainActivity extends Activity implements SensorEventListener {
 				if (!invalidGetDistanceButton) {
 					tempDistance = d;
 					pitchDistance = pitch;
-					if (pressedGetDistanceButton)
+					if (pressedGetDistanceButton) {
 						initValues();
+						getHeight.setVisibility(View.INVISIBLE);
+					}
 					else
 						pressedGetDistanceButton = true;
 				}
@@ -115,10 +125,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 			@Override
 			public void onClick(View v) {
 				if (!invalidGetHeightButton) {
-					if (pressedGetHeightButton)
-						initValues();
-					else
 						pressedGetHeightButton = true;
+					getHeight.setVisibility(View.INVISIBLE);
 				}
 			}
 		});
@@ -130,8 +138,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 			public void onClick(View v) {
 				PromptDialog();
 				personHeight = inputB + inputH;
-	//			Intent myIntent = new Intent(MainActivity.this,InputHeight.class);
-	//			startActivity(myIntent);
 			}
 		});
 	}
@@ -179,7 +185,11 @@ public class MainActivity extends Activity implements SensorEventListener {
  */
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		if (!inputed) return;
+		if (!inputed) {
+			getDistance.setVisibility(View.INVISIBLE);
+			return;
+		}
+		else getDistance.setVisibility(View.VISIBLE);
 		float[] gravity = new float[3];
 		float[] geoMagnetic = new float[3];
 		float[] R = new float[9];
@@ -208,7 +218,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 					
 					/*caculate distance  from camera to object*/
 					d = Math.abs((float) (personHeight * Math.tan(pitch * Math.PI/ 180)));
-					if (!pressedGetDistanceButton)
+					if (!pressedGetDistanceButton) {
 						if (gravity[2] > 0) {
 							textView.setText("D: " + d + "\n Angle: "+ pitch);
 							invalidGetDistanceButton = false;
@@ -217,8 +227,10 @@ public class MainActivity extends Activity implements SensorEventListener {
 							textView.setText("Please aim at the ground");
 							invalidGetDistanceButton = true;
 						}
+					}
 					/*caculate object's height*/
-					if (pressedGetDistanceButton){
+					if (pressedGetDistanceButton && !pressedGetHeightButton) {
+						getHeight.setVisibility(View.VISIBLE);
 						if  (gravity[2] == 0) 
 							height = personHeight;
 						else
@@ -253,7 +265,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 								if (maxHeightValue)
 									heightResult.setText("MAX");
 								else
-									heightResult.setText("Height: " + height+ "\n Angle: "+ pitch + "\n gra: "+gravity[2]);
+									heightResult.setText("Height: " + height+ "\n Angle: "+ pitch);
 						}
 					}
 				}
@@ -264,87 +276,79 @@ public class MainActivity extends Activity implements SensorEventListener {
 	 * @author: Nguyen Vinh Phu 9-B
 	 * show dialog input height camre and height buiding
 	 * */
-		private void PromptDialog() {
-			// TODO Auto-generated method stub
-			Context context = this;
+	private void PromptDialog() {
+		// TODO Auto-generated method stub
+		Context context = this;
+		LayoutInflater li = LayoutInflater.from(context);
+		View promptsView = li.inflate(R.layout.input_height, null);
 
-			LayoutInflater li = LayoutInflater.from(context);
-			View promptsView = li.inflate(R.layout.input_height, null);
+		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+		// set prompts.xml to alertdialog builder
+		alertDialogBuilder.setView(promptsView);
+		alertDialogBuilder.setTitle("Input Height");
 
-			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-					context);
+		final EditText userInputHeight = (EditText) promptsView.findViewById(R.id.inputHeight);
+		final EditText userInputBuiding = (EditText) promptsView.findViewById(R.id.inputBuiding);
 
-			// set prompts.xml to alertdialog builder
-			alertDialogBuilder.setView(promptsView);
-			alertDialogBuilder.setTitle("Input Height");
-
-			final EditText userInputHeight = (EditText) promptsView
-					.findViewById(R.id.inputHeight);
-			final EditText userInputBuiding = (EditText) promptsView
-					.findViewById(R.id.inputBuiding);
-
-			userInputHeight.setFilters(new InputFilter[] {
-					// Maximum 2 characters.
-					new InputFilter.LengthFilter(4),
-					// Digits only.
-					DigitsKeyListener.getInstance(false, true), // Not strictly
+		userInputHeight.setFilters(new InputFilter[] {
+			// Maximum 2 characters.
+			new InputFilter.LengthFilter(4),
+			// Digits only.
+			DigitsKeyListener.getInstance(false, true), // Not strictly
 																// needed, IMHO.
+		});
+
+		// Digits only & use numeric soft-keyboard.
+		userInputBuiding.setKeyListener(DigitsKeyListener.getInstance(false,true));
+
+		userInputBuiding.setFilters(new InputFilter[] {
+			// Maximum 2 characters.
+			new InputFilter.LengthFilter(4),
+			// Digits only.
+			DigitsKeyListener.getInstance(false, true), // Not strictly
+														// needed, IMHO.
+		});
+
+		// Digits only & use numeric soft-keyboard.
+		userInputHeight.setKeyListener(DigitsKeyListener.getInstance(false,true));
+
+		// set dialog message
+		alertDialogBuilder.setCancelable(false).setPositiveButton("OK",new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+				// get user input and set it to result
+				// edit text
+				// result.setText(userInput.getText());
+				if (userInputHeight.getText().toString().matches(""))
+					inputH = 0;
+				else inputH = Float.parseFloat(userInputHeight.getText().toString());
+				if (userInputBuiding.getText().toString().matches(""))
+					inputB = 0;
+				else inputB = Float.parseFloat(userInputBuiding.getText().toString());
+				personHeight = inputB + inputH;
+				inputed = true;
+				if(inputH < 0.5) {
+					inputed = false;
+					Toast.makeText(getApplicationContext(),"height Camera must langer 0.5m ",Toast.LENGTH_LONG).show();
+					PromptDialog();
+					return;
+				}
+				if(inputB > 500) {
+					inputed = false;
+					Toast.makeText(getApplicationContext(),"range: 0m ~ 500m",Toast.LENGTH_LONG).show();
+					PromptDialog();
+					return;
+				}
+				
+				initValues();
+			}
+			}).setNegativeButton("Cancel",new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					dialog.cancel();
+				}
 			});
-
-			// Digits only & use numeric soft-keyboard.
-			userInputBuiding.setKeyListener(DigitsKeyListener.getInstance(false,
-					true));
-
-			userInputBuiding.setFilters(new InputFilter[] {
-					// Maximum 2 characters.
-					new InputFilter.LengthFilter(4),
-					// Digits only.
-					DigitsKeyListener.getInstance(false, true), // Not strictly
-																// needed, IMHO.
-			});
-
-			
-			// Digits only & use numeric soft-keyboard.
-			userInputHeight.setKeyListener(DigitsKeyListener.getInstance(false,
-					true));
-
-			// set dialog message
-			alertDialogBuilder
-					.setCancelable(false)
-					.setPositiveButton("Đồng ý",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog, int id) {
-									// get user input and set it to result
-									// edit text
-									// result.setText(userInput.getText());
-									inputH = Float.parseFloat(userInputHeight.getText().toString());
-									inputB = Float.parseFloat(userInputBuiding.getText().toString());
-									personHeight = inputB + inputH;
-//									Toast.makeText(getApplicationContext(),"heightH:" + personHeight,Toast.LENGTH_LONG).show();
-									inputed = true;
-									if(inputH < 0.5)
-									{
-										Toast.makeText(getApplicationContext(),"height Camera must langer 0.5m ",Toast.LENGTH_LONG).show();
-									}
-									 if(inputB > 100)
-									 {
-										 Toast.makeText(getApplicationContext(),"range: 0m ~ 500m",Toast.LENGTH_LONG).show();
-
-									 }
-								}
-							})
-					.setNegativeButton("Huỷ bỏ",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog, int id) {
-									dialog.cancel();
-								}
-							});
-
 			// create alert dialog
 			AlertDialog alertDialog = alertDialogBuilder.create();
-
 			// show it
 			alertDialog.show();
 		}
-
 }
