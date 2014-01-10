@@ -5,7 +5,11 @@
     android:versionName="1.0" >
 
     <uses-sdk
+<<<<<<< HEAD
         android:minSdkVersion="11"
+=======
+        android:minSdkVersion="9"
+>>>>>>> 3b5ebdfb30f72c347691c75558bead3881f8b295
         android:targetSdkVersion="18" />
      <supports-screens android:anyDensity="true"
                     android:largeScreens="true"
