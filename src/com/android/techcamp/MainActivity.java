@@ -3,33 +3,43 @@
  * */
 package com.android.techcamp;
 
-import com.android.techcamp.R;
+import java.text.DecimalFormat;
 
-import android.R.bool;
+import com.android.techcamp.R;
+import com.android.techcamp.MainActivity;
+
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
-import android.hardware.Camera.CameraInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.InputFilter;
 import android.text.method.DigitsKeyListener;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ZoomControls;
+
+
 
 public class MainActivity extends Activity implements SensorEventListener {
 	SensorManager mSensorManager;
@@ -48,16 +58,20 @@ public class MainActivity extends Activity implements SensorEventListener {
 	boolean invalidGetDistanceButton;
 	boolean invalidGetHeightButton;
 	boolean inputed;
-
+	private final Context context = this;
 	private Preview mPreview; 							// Frame display in screen 
 	private Camera mCamera;								// CAMERA
  
 	private Button getDistance;							// get distance
 	private Button getHeight;							// get Height a Object
 	private Button inputHeight;
+	private Button menubutton;
 	TextView textView;			
-	TextView heightResult;								// Show height result 		
-
+	TextView heightResult;								// Show height result
+	TextView hPerson;
+	TextView hBuilding;
+	public ImageView pictureCapture;
+	public static Handler handler;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -65,6 +79,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		FrameLayout previewLayout = (FrameLayout) findViewById(R.id.preview);
 		mPreview = new Preview(MainActivity.this); 
 		previewLayout.addView(mPreview);
+		final ProcessImage processImage = new ProcessImage();
 		
 		Resources res = getResources();
 		Drawable background = res.getDrawable(R.drawable.background1);		
@@ -73,14 +88,134 @@ public class MainActivity extends Activity implements SensorEventListener {
 		
 		heightResult = (TextView) findViewById(R.id.height);
 		textView = (TextView) findViewById(R.id.textView);
+		hPerson = (TextView)findViewById(R.id.person);
+		hBuilding = (TextView)findViewById(R.id.buiding);
+		pictureCapture = (ImageView)findViewById(R.id.pictureCapture);		
+		
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		// Use below method to get the default sensor for a given type
 		accSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		magnetSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		
 		inputed = false;
 		initButtons();
 		PromptDialog();
+		handler = new Handler(){
+
+			@Override
+			public void handleMessage(Message msg) {
+				if(msg.what == 1){					 					
+						processImage.Exe(pictureCapture);
+				}
+			}
+			
+		};
 	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.menu_main, menu);
+		return true;
+	}
+	
+	@Override 
+	public boolean onOptionsItemSelected(MenuItem item) { 
+		switch (item.getItemId()) { 
+		 case R.id.action_about:
+	            about(item);
+	            return true;
+	        case R.id.action_guide:
+	        	Guide(item); 	
+	          return true;
+	        case R.id.action_setting:
+	        	return true;
+	        default:
+	            return super.onOptionsItemSelected(item);
+		} 
+			 
+	}
+	
+	public void about(MenuItem item){
+
+		
+		final Dialog dialog = new Dialog(context);
+		dialog.setContentView(R.layout.about);
+		dialog.setTitle(item.getTitle());
+
+		// set the custom dialog components - text, image and button
+		TextView text = (TextView) dialog.findViewById(R.id.text);
+		text.setText("Developed by Group 09 Techcamp 2014!");
+		ImageView image = (ImageView) dialog.findViewById(R.id.image);
+		image.setImageResource(R.drawable.aboutus);
+
+		Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
+		// if button is clicked, close the custom dialog
+		dialogButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				dialog.dismiss();
+			}
+		});
+
+		dialog.show();
+		
+	}
+	/*
+	 * Show software guide
+	 * @author: 9-C Tran Doan Tan
+	 * */
+	
+	public void Guide(MenuItem item){
+		final Dialog dialog = new Dialog(context);
+		dialog.setContentView(R.layout.guide);
+		dialog.setTitle(item.getTitle());
+
+		// set the custom dialog components - text, image and button
+		TextView text = (TextView) dialog.findViewById(R.id.text);
+		text.setText(R.string.guide);
+		//ImageView image = (ImageView) dialog.findViewById(R.id.image);
+		//image.setImageResource(R.drawable.guide);
+
+		Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
+		// if button is clicked, close the custom dialog
+		dialogButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				dialog.dismiss();
+			}
+		});
+
+		dialog.show();
+		
+	}
+	
+	private void onPopupButtonClick(View v) {
+		PopupMenu pop = new PopupMenu(this, v);
+		pop.getMenuInflater().inflate(R.menu.popup, pop.getMenu());
+		pop.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+
+			@Override
+			public boolean onMenuItemClick(MenuItem item) {
+//				Toast.makeText(MainActivity.this,  item.getTitle(),
+//						Toast.LENGTH_SHORT).show();
+				switch(item.getItemId()){
+				case R.id.menu_about:
+					about(item);
+				return true;
+				case R.id.menu_guide:
+					Guide(item);
+					return true;
+				case R.id.menu_setting:
+					return true;
+				}
+				
+				return false;
+			}
+		});
+		pop.show();
+	}
+	
 /*
  * @author: 9-A: Le Hoai Nam
  * initial variable values and set button
@@ -92,7 +227,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 		minHeightValue = false;
 		invalidGetDistanceButton = false;
 		invalidGetHeightButton = false;
-		heightResult.setText("Height result");
+		//heightResult.setText("Height result");
 	}
 	
 	private void initButtons() {
@@ -100,12 +235,13 @@ public class MainActivity extends Activity implements SensorEventListener {
 		getHeight = (Button) findViewById(R.id.getHeight);
 		inputHeight = (Button) findViewById(R.id.inputHeight);
 		getHeight.setVisibility(View.INVISIBLE);
-		
+		menubutton = (Button)findViewById(R.id.menubutton);
 		// When Click "getDistance" button
 		getDistance.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
+//				mPreview.takePicture();
 				if (!invalidGetDistanceButton) {
 					tempDistance = d;
 					pitchDistance = pitch;
@@ -124,6 +260,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 			@Override
 			public void onClick(View v) {
+				
 				if (!invalidGetHeightButton) {
 						pressedGetHeightButton = true;
 					getHeight.setVisibility(View.INVISIBLE);
@@ -140,8 +277,20 @@ public class MainActivity extends Activity implements SensorEventListener {
 				personHeight = inputB + inputH;
 			}
 		});
+		
+		menubutton.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+			
+				onPopupButtonClick(v);
+			}
+		});
+		
 	}
 
+	
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -185,6 +334,7 @@ public class MainActivity extends Activity implements SensorEventListener {
  */
 	@Override
 	public void onSensorChanged(SensorEvent event) {
+		
 		if (!inputed) {
 			getDistance.setVisibility(View.INVISIBLE);
 			return;
@@ -220,11 +370,22 @@ public class MainActivity extends Activity implements SensorEventListener {
 					d = Math.abs((float) (personHeight * Math.tan(pitch * Math.PI/ 180)));
 					if (!pressedGetDistanceButton) {
 						if (gravity[2] > 0) {
-							textView.setText("D: " + d + "\n Angle: "+ pitch);
-							invalidGetDistanceButton = false;
+							DecimalFormat df = new DecimalFormat("0.00");
+							String str= df.format(d);
+							try {
+								
+								double result= Double.parseDouble(str);
+								textView.setText(""+result);
+								invalidGetDistanceButton = false;
+								for (int i=0;i<=10000000;i++);
+							} catch (Exception e) {
+								// TODO: handle exception
+							//	 Toast.makeText(MainActivity.this,"Please Enter a valid double value",Toast.LENGTH_SHORT).show();
+							}
+							
 						}
 						else {
-							textView.setText("Please aim at the ground");
+							textView.setText("MAX");
 							invalidGetDistanceButton = true;
 						}
 					}
@@ -259,13 +420,21 @@ public class MainActivity extends Activity implements SensorEventListener {
 									height = personHeight*(1 - (float)(Math.tan(Math.abs(pitchDistance)* Math.PI / 180)/Math.tan(Math.abs(pitch)* Math.PI / 180)));
 								}
 						if (!pressedGetHeightButton) {
-							if (minHeightValue)
-								heightResult.setText("MIN");
-							else
-								if (maxHeightValue)
-									heightResult.setText("MAX");
-								else
-									heightResult.setText("Height: " + height+ "\n Angle: "+ pitch);
+							if (minHeightValue || maxHeightValue)	
+								heightResult.setText("MAX");
+							else {
+								DecimalFormat df = new DecimalFormat("0.00");
+								String str= df.format(height);
+								try {
+									double result= Double.parseDouble(str);
+									heightResult.setText(""+result);
+									for (int i=0;i<=10000000;i++);
+								} catch (Exception e) {
+									// TODO: handle exception
+								//	 Toast.makeText(MainActivity.this,"Please Enter a valid double value",Toast.LENGTH_SHORT).show();
+								}
+								
+							}
 						}
 					}
 				}
@@ -318,14 +487,16 @@ public class MainActivity extends Activity implements SensorEventListener {
 				// get user input and set it to result
 				// edit text
 				// result.setText(userInput.getText());
-				if (userInputHeight.getText().toString().matches(""))
-					inputH = 0;
+				 if (userInputHeight.getText().toString().matches("")) {
+					inputed = false;
+					Toast.makeText(getApplicationContext(),"You must input your height ",Toast.LENGTH_LONG).show();
+					PromptDialog();
+					return;
+				 }
 				else inputH = Float.parseFloat(userInputHeight.getText().toString());
 				if (userInputBuiding.getText().toString().matches(""))
 					inputB = 0;
 				else inputB = Float.parseFloat(userInputBuiding.getText().toString());
-				personHeight = inputB + inputH;
-				inputed = true;
 				if(inputH < 0.5) {
 					inputed = false;
 					Toast.makeText(getApplicationContext(),"height Camera must langer 0.5m ",Toast.LENGTH_LONG).show();
@@ -334,11 +505,14 @@ public class MainActivity extends Activity implements SensorEventListener {
 				}
 				if(inputB > 500) {
 					inputed = false;
-					Toast.makeText(getApplicationContext(),"range: 0m ~ 500m",Toast.LENGTH_LONG).show();
+					Toast.makeText(getApplicationContext(),"range's building: 0m ~ 500m",Toast.LENGTH_LONG).show();
 					PromptDialog();
 					return;
 				}
-				
+				personHeight = inputB + inputH;
+				inputed = true;
+				hPerson.setText("h: "+ inputH);
+				hBuilding.setText("H: "+ inputB);
 				initValues();
 			}
 			}).setNegativeButton("Cancel",new DialogInterface.OnClickListener() {

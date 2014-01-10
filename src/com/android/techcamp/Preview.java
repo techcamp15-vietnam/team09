@@ -48,7 +48,8 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback{
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
 		Camera.Parameters parameters = mCamera.getParameters();		
-        parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+//		parameters.setPreviewSize(640,480);
+		parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
         requestLayout();
 
         mCamera.setParameters(parameters);
@@ -145,6 +146,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback{
 				outStream = new FileOutputStream(sFileName);
 				outStream.write(data);
 				outStream.close();
+				MainActivity.handler.sendEmptyMessage(1);
 				camera.startPreview(); // neu ko co ham nay thi khi chup xong se dung lai
 			}catch(Exception e){
 				Log.e(TAG, "" + e.getMessage());
@@ -181,7 +183,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback{
     	
     	String state = Environment.getExternalStorageState();
     	if(state.equals(Environment.MEDIA_MOUNTED)){
-    		String sFileName = Environment.getExternalStorageDirectory() + File.separator + System.currentTimeMillis() + ".jpg";
+    		String sFileName = Environment.getExternalStorageDirectory() + File.separator+ "tmp.jpg";
     		return sFileName;
     	}
     	return "";

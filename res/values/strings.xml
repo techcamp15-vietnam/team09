@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <string name="app_name">CameraPreviewDemo</string>
+	<string name="titleInputHeight">TitleInputHeight</string>
+    <string name="app_name">CameraMeasure</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
 	<string name="take_picture">Take Picture</string>
 	<string name="switch_camera">Switch Camera</string>
 	<string name="camera_alert">Your device has only one camera</string>
+	
+	 <string name="action_input_heigt">Input height</string>
+	<string name="action_about">about us</string>
+	<string name="action_guide">Guide</string>
+	<string name="action_setting">Setting</string>
+	
+	<string name="menu_about_t" > About us</string>
+	<string name="menu_guide_t">Guide </string>
+	<string name="menu_setting_t">Settings </string>
+	
+<string name="guide">
+-	Camera Measure allows you to measure the approximate distance and height of an object \n
+-	To measure: \n
+	\t Step 1: You must enter height of phone and building\n
+	\t Step 2: you can measure the distance from you to an object by aiming at the BOTTOM (on the ground) of it. Press D button to show distance result\n
+	\t Step 3: The height of an object can be measured with the measured distance (step 1). Press H button to show height result \n
+</string>
+	
 </resources>

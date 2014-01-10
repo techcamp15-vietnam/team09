@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" 
+    >
+
+  	  <!-- Setting -->
+    <item android:id="@+id/action_setting"
+          android:title="@string/action_setting"
+          android:icon="@drawable/setting"
+          android:showAsAction="ifRoom" />
+    
+    <!-- About -->
+    <item android:id="@+id/action_about"
+          android:title="@string/action_about"
+           android:icon="@drawable/about"
+          android:showAsAction="never"/>
+     
+    <!-- Guide -->
+    <item android:id="@+id/action_guide"
+          android:title="@string/action_guide"
+          android:icon="@drawable/guide"
+          android:showAsAction="never" />
+    
+</menu>
